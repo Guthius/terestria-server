@@ -25,9 +25,10 @@ func sendJoinGame(player *Player) {
 
 	writer.WriteInteger(MsgJoinGame)
 	writer.WriteLong(player.Conn.Id())
+	writer.WriteByte(byte(player.Character.Direction))
 	writer.WriteLong(player.Character.X)
 	writer.WriteLong(player.Character.Y)
-	writer.WriteString(player.Character.Level)
+	writer.WriteString(player.Character.Map)
 
 	player.Send(writer.Bytes())
 }

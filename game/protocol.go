@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/binary"
+	"fmt"
 
 	"github.com/guthius/terestria-server/net"
 )
@@ -14,6 +15,11 @@ const (
 	MsgRemovePlayer
 	MsgMovePlayer
 	MsgSetPlayerPosition
+	MsgSetPlayerDirection
+	MsgChangeMap
+	MsgAttack
+	MsgChat
+	MsgNotification
 
 	MaxMessageId = iota
 )
@@ -25,11 +31,16 @@ var PacketHandlers [MaxMessageId]PacketHandler
 func init() {
 	PacketHandlers[MsgLogin] = handleLogin
 	PacketHandlers[MsgMovePlayer] = handleMovePlayer
+	PacketHandlers[MsgSetPlayerDirection] = handleSetPlayerDirection
+	PacketHandlers[MsgAttack] = handleAttack
+	PacketHandlers[MsgChat] = handleChat
 }
 
 // HandleDataReceived handles the data received from the specified player.
 func HandleDataReceived(id int, bytes []byte) {
 	const headerSize = 2
+
+	fmt.Printf("[%04d] Received %d bytes from player\n", id, len(bytes))
 
 	player, ok := players[id]
 	if !ok {
@@ -117,4 +128,37 @@ func handleMovePlayer(player *Player, reader *net.PacketReader) {
 	dir := reader.ReadByte()
 
 	player.Room.MovePlayer(player, int(dir))
+}
+
+// handleSetPlayerDirection handles the set player direction packet for the player.
+func handleSetPlayerDirection(player *Player, reader *net.PacketReader) {
+	if player.Room == nil {
+		return
+	}
+
+	dir := reader.ReadByte()
+
+	player.Room.SetPlayerDirection(player, int(dir))
+}
+
+// handleAttack handles the attack packet for the player.
+func handleAttack(player *Player, reader *net.PacketReader) {
+	if player.Room == nil {
+		return
+	}
+
+	dir := reader.ReadByte()
+
+	player.Room.Attack(player, int(dir))
+}
+
+// handleChat handles the chat packet for the player.
+func handleChat(player *Player, reader *net.PacketReader) {
+	if player.Room == nil {
+		return
+	}
+
+	message := reader.ReadString()
+
+	player.Room.Chat(player, message)
 }

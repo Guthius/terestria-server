@@ -30,10 +30,20 @@ func (p *Player) Send(bytes []byte) {
 		return
 	}
 
-	sizeBytes := []byte{byte(size), byte(size >> 8)}
+	packet := []byte{byte(size), byte(size >> 8)}
+	packet = append(packet, bytes...)
 
-	p.Conn.Send(sizeBytes)
-	p.Conn.Send(bytes)
+	p.Conn.Send(packet)
+}
+
+// SendNotification sends a notification to the player.
+func (player *Player) SendNotification(message string) {
+	writer := net.NewPacketWriter()
+
+	writer.WriteInteger(MsgNotification)
+	writer.WriteString(message)
+
+	player.Send(writer.Bytes())
 }
 
 // Disconnect closes the connection with the player.

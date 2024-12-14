@@ -34,6 +34,16 @@ func (room *Room) SendExcept(bytes []byte, except *Player) {
 	}
 }
 
+// SendNotification sends a notification to all players in the room.
+func (room *Room) SendNotification(message string) {
+	writer := net.NewPacketWriter()
+
+	writer.WriteInteger(MsgNotification)
+	writer.WriteString(message)
+
+	room.Send(writer.Bytes())
+}
+
 // AddPlayer adds a player to the room.
 func (room *Room) AddPlayer(player *Player) {
 	room.Players = append(room.Players, player)
@@ -50,6 +60,7 @@ func (room *Room) AddPlayer(player *Player) {
 		writer.WriteLong(other.Conn.Id())
 		writer.WriteString(other.Character.Name)
 		writer.WriteString(other.Character.Sprite)
+		writer.WriteByte(byte(other.Character.Direction))
 		writer.WriteLong(other.Character.X)
 		writer.WriteLong(other.Character.Y)
 
@@ -61,6 +72,7 @@ func (room *Room) AddPlayer(player *Player) {
 	writer.WriteLong(player.Conn.Id())
 	writer.WriteString(player.Character.Name)
 	writer.WriteString(player.Character.Sprite)
+	writer.WriteByte(byte(player.Character.Direction))
 	writer.WriteLong(player.Character.X)
 	writer.WriteLong(player.Character.Y)
 
@@ -87,6 +99,12 @@ func (room *Room) RemovePlayer(player *Player) {
 
 // MovePlayer moves the specified player in the specified direction.
 func (room *Room) MovePlayer(player *Player, dir int) {
+	if player.Character == nil {
+		return
+	}
+
+	player.Character.Direction = dir
+
 	switch dir {
 	case DirUp:
 		player.Character.Y--
@@ -98,12 +116,54 @@ func (room *Room) MovePlayer(player *Player, dir int) {
 		player.Character.X++
 	}
 
-	fmt.Printf("[%04d] Player %s moved to (%d, %d)\n", player.Conn.Id(), player.Character.Name, player.Character.X, player.Character.Y)
-
 	writer := net.NewPacketWriter()
 	writer.WriteInteger(MsgMovePlayer)
 	writer.WriteLong(player.Conn.Id())
 	writer.WriteByte(byte(dir))
 
 	room.SendExcept(writer.Bytes(), player)
+}
+
+// SetPlayerPosition sets the direction the specified player is facing.
+func (room *Room) SetPlayerDirection(player *Player, dir int) {
+	if player.Character == nil || player.Character.Direction == dir {
+		return
+	}
+
+	player.Character.Direction = dir
+
+	writer := net.NewPacketWriter()
+	writer.WriteInteger(MsgSetPlayerDirection)
+	writer.WriteLong(player.Conn.Id())
+	writer.WriteByte(byte(dir))
+
+	room.SendExcept(writer.Bytes(), player)
+}
+
+// Attack makes the specified player attack in the specified direction.
+func (room *Room) Attack(player *Player, dir int) {
+	if player.Character == nil {
+		return
+	}
+
+	player.Character.Direction = dir
+
+	writer := net.NewPacketWriter()
+
+	writer.WriteInteger(MsgAttack)
+	writer.WriteLong(player.Conn.Id())
+	writer.WriteByte(byte(dir))
+
+	room.SendExcept(writer.Bytes(), player)
+}
+
+// Chat handles a chat messager from the specified player.
+func (room *Room) Chat(player *Player, message string) {
+	if len(message) == 0 {
+		return
+	}
+
+	fmt.Printf("[%04d] %s: %s\n", player.Conn.Id(), player.Character.Name, message)
+
+	room.SendNotification(fmt.Sprintf("%s: %s", player.Character.Name, message))
 }

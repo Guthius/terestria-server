@@ -33,21 +33,23 @@ When the client receives this command it should load the requested map and creat
 | Field | Name        | Type   | Description                                                    |
 | ----- | ----------- | ------ | -------------------------------------------------------------- |
 | 0     | Player ID   | int    | A unique ID of the player (this is the ID the Client controls) |
-| 1     | X           | int    | The X position                                                 |
-| 2     | Y           | int    | The Y position                                                 |
-| 3     | Map         | string | The path of the map to load (without the .tscn extension)      |
+| 1     | Direction   | byte   | The direction the player is facing                             |
+| 2     | X           | int    | The X position                                                 |
+| 3     | Y           | int    | The Y position                                                 |
+| 4     | Map         | string | The path of the map to load (without the .tscn extension)      |
 
 ## 3. AddPlayer
 
 Send by the Server to the client when a player enters the map the Client is currently on.
 
-| Field | Name        | Type   | Description               |
-| ----- | ----------- | ------ | ------------------------- |
-| 0     | Player ID   | int    | A unique ID of the player |
-| 1     | Player Name | string | The name of the player    |
-| 2     | Sprite      | string | The sprite of the texture |
-| 3     | X           | int    | The X position            |
-| 4     | Y           | int    | The Y position            |
+| Field | Name        | Type   | Description                        |
+| ----- | ----------- | ------ | ---------------------------------- |
+| 0     | Player ID   | int    | A unique ID of the player          |
+| 1     | Player Name | string | The name of the player             |
+| 2     | Sprite      | string | The sprite of the texture          |
+| 3     | Direction   | byte   | The direction the player is facing |
+| 4     | X           | int    | The X position                     |
+| 5     | Y           | int    | The Y position                     |
 
 ## 4. RemovePlayer
 
@@ -56,7 +58,6 @@ Send by the Server to the Client when a player leaves the map the Client is curr
 | Field | Name        | Type   | Description                           |
 | ----- | ----------- | ------ | ------------------------------------- |
 | 0     | Player ID   | int    | The unique ID of the player to remove |
-
 
 ## 5. MovePlayer
 
@@ -92,3 +93,53 @@ player's position by relocating them to a valid location.
 | 0     | Player ID   | int    | A unique ID of the player |
 | 1     | X           | int    | The X position            |
 | 2     | Y           | int    | The Y position            |
+
+## 7. SetPlayerDirection
+
+### From Client
+
+| Field | Name      | Type | Description                        |
+| ----- | --------- | ---- | ---------------------------------- |
+| 0     | Direction | byte | The direction the player is facing |
+
+### From Server
+
+| Field | Name        | Type   | Description                        |
+| ----- | ----------- | ------ | ---------------------------------- |
+| 0     | Player ID   | int    | A unique ID of the player          |
+| 1     | Direction   | byte   | The direction the player is facing |
+
+## 8. ChangeMap
+
+*TBD*
+
+## 9. Attack
+
+Send by the Client to the Server when they want to attack. 
+
+Send by the Server to Client to indicate that a remote player is attacking.
+
+### From Client
+
+| Field | Name      | Type | Description                |
+| ----- | --------- | ---- | -------------------------- |
+| 0     | Direction | byte | The direction to attack in |
+
+### From Server
+
+| Field | Name      | Type | Description                        |
+| ----- | --------- | -----| ---------------------------------- |
+| 0     | Player ID | int  | A unique ID of the player          |
+| 1     | Direction | byte | The direction the player is facing |
+
+## 10. Chat
+
+| Field | Name      | Type   | Description      |
+| ----- | --------- | ------ | ---------------- |
+| 0     | Message   | string | The chat message |
+
+## 11. Notification
+
+| Field | Name      | Type   | Description              |
+| ----- | --------- | ------ | ------------------------ |
+| 0     | Message   | string | The notification message |
