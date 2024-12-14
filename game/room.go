@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/guthius/terestria-server/net"
 )
@@ -159,7 +160,13 @@ func (room *Room) Attack(player *Player, dir int) {
 
 // Chat handles a chat messager from the specified player.
 func (room *Room) Chat(player *Player, message string) {
+	message = strings.TrimSpace(message)
 	if len(message) == 0 {
+		return
+	}
+
+	if message[0] == '/' {
+		handleChatCommand(player, message)
 		return
 	}
 
